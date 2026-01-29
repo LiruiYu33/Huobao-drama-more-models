@@ -20,6 +20,37 @@
 
 Huobao Drama 是一个基于 AI 的短剧自动化生产平台，实现从剧本生成、角色设计、分镜制作到视频合成的全流程自动化。
 
+### 🔌 模型 API 支持（本仓库二开重点）
+
+本分支增强了模型 API 的可接入范围，统一在 **设置 → AI 配置** 中管理。
+
+**文本（LLM）**
+
+- **OpenAI 兼容**：`provider=openai` 或 `provider=chatfire`（实现 `/chat/completions` 的接口即可）
+- **Gemini 原生**：`provider=gemini` 或 `provider=google`
+
+**图片**
+
+- **OpenAI 兼容**：`provider=openai` / `dalle` / `chatfire`（`/images/generations`）
+- **豆包/火山引擎**：`provider=doubao` / `volcengine` / `volces`
+- **Gemini 图片**：`provider=gemini` / `provider=google`
+
+**视频**
+
+- **豆包/火山引擎**：`provider=doubao` / `volcengine` / `volces`
+- **OpenAI Sora**：`provider=openai`
+- **MiniMax**：`provider=minimax`
+- **Runway**：`provider=runway`
+- **Pika**：`provider=pika`
+- **Chatfire**：`provider=chatfire`
+
+**OpenAI 兼容自定义接入**
+
+- 设置 `provider=openai`（或 `chatfire`）
+- `base_url` 填你的厂商地址（如 `https://.../v1`）
+- `endpoint` 留空会自动使用内置默认值
+- 同一服务类型可配置多条，**priority** 决定默认使用哪条
+
 ### 🎯 核心价值
 
 - **🤖 AI 驱动**：使用大语言模型解析剧本，提取角色、场景和分镜信息
@@ -609,7 +640,7 @@ A: GORM 会在首次启动时自动创建表，检查日志确认迁移是否成
 
 ## API 配置站点
 
-2 分钟完成配置：[API 聚合站点](https://api.chatfire.site/models)
+可选：你可以接入任意 OpenAI 兼容网关统一管理模型，也可以直接配置各厂商的原生 API。
 
 ---
 

@@ -20,6 +20,37 @@
 
 Huobao Drama is an AI-powered short drama production platform that automates the entire workflow from script generation, character design, storyboarding to video composition.
 
+### 🔌 Model API Support (Fork Focus)
+
+This fork expands model connectivity beyond the official defaults. Configure everything in **Settings → AI Config** (Web UI).
+
+**Text (LLM)**
+
+- **OpenAI-compatible**: `provider=openai` or `provider=chatfire` (any endpoint that implements `/chat/completions`)
+- **Gemini native**: `provider=gemini` or `provider=google`
+
+**Image**
+
+- **OpenAI-compatible**: `provider=openai` / `dalle` / `chatfire` (`/images/generations`)
+- **Doubao/Volcengine**: `provider=doubao` / `volcengine` / `volces`
+- **Gemini image**: `provider=gemini` / `provider=google`
+
+**Video**
+
+- **Doubao/Volcengine**: `provider=doubao` / `volcengine` / `volces`
+- **OpenAI Sora**: `provider=openai`
+- **MiniMax**: `provider=minimax`
+- **Runway**: `provider=runway`
+- **Pika**: `provider=pika`
+- **Chatfire**: `provider=chatfire`
+
+**OpenAI-compatible BYO**
+
+- Set `provider=openai` (or `chatfire`)
+- Set `base_url` to your provider endpoint (e.g. `https://.../v1`)
+- Leave `endpoint` empty to use built-in defaults
+- Add multiple configs per service type; **priority** decides the default
+
 ### 🎯 Core Features
 
 - **🤖 AI-Driven**: Parse scripts using large language models to extract characters, scenes, and storyboards
@@ -609,7 +640,7 @@ Issues and Pull Requests are welcome!
 
 ## API Configuration Site
 
-Configure in 2 minutes: [API Aggregation Site](https://api.chatfire.site/models)
+Optional: use any OpenAI-compatible gateway for unified model management. The project works with direct vendor APIs as well.
 
 ---
 
