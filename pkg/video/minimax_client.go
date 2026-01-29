@@ -75,7 +75,7 @@ type MinimaxCreateResponse struct {
 type MinimaxQueryResponse struct {
 	TaskID      string `json:"task_id"`
 	Status      string `json:"status"` // Processing, Success, Failed
-	FileID      string `json:"file_id"`
+	FileID      JSONStringOrNumber `json:"file_id"`
 	VideoWidth  int    `json:"video_width"`
 	VideoHeight int    `json:"video_height"`
 	BaseResp    struct {
@@ -87,7 +87,7 @@ type MinimaxQueryResponse struct {
 // MinimaxFileResponse 获取文件信息的响应
 type MinimaxFileResponse struct {
 	File struct {
-		FileID      string `json:"file_id"`
+		FileID      JSONStringOrNumber `json:"file_id"`
 		Bytes       int    `json:"bytes"`
 		CreatedAt   int64  `json:"created_at"`
 		Filename    string `json:"filename"`
@@ -98,6 +98,41 @@ type MinimaxFileResponse struct {
 		StatusCode int    `json:"status_code"`
 		StatusMsg  string `json:"status_msg"`
 	} `json:"base_resp"`
+}
+
+// JSONStringOrNumber accepts JSON string or number and normalizes to string.
+type JSONStringOrNumber string
+
+func (s *JSONStringOrNumber) UnmarshalJSON(data []byte) error {
+	// Trim spaces
+	for len(data) > 0 && (data[0] == ' ' || data[0] == '\n' || data[0] == '\t' || data[0] == '\r') {
+		data = data[1:]
+	}
+	if len(data) == 0 {
+		*s = ""
+		return nil
+	}
+
+	// If it's a JSON string
+	if data[0] == '"' {
+		var str string
+		if err := json.Unmarshal(data, &str); err != nil {
+			return err
+		}
+		*s = JSONStringOrNumber(str)
+		return nil
+	}
+
+	// If it's a number (or something else), decode as json.Number then stringify
+	var num json.Number
+	if err := json.Unmarshal(data, &num); err == nil {
+		*s = JSONStringOrNumber(num.String())
+		return nil
+	}
+
+	// Fallback to raw string
+	*s = JSONStringOrNumber(string(data))
+	return nil
 }
 
 func NewMinimaxClient(baseURL, apiKey, model string) *MinimaxClient {
@@ -188,7 +223,7 @@ func (c *MinimaxClient) GenerateVideo(imageURL, prompt string, opts ...VideoOpti
 	}
 
 	if result.BaseResp.StatusCode != 0 {
-		return nil, fmt.Errorf("minimax error: %s", result.BaseResp.StatusMsg)
+		return nil, fmt.Errorf("minimax error: %s (code=%d, body=%s)", result.BaseResp.StatusMsg, result.BaseResp.StatusCode, string(body))
 	}
 
 	// 第一步只返回 task_id，状态为 Processing
@@ -235,7 +270,7 @@ func (c *MinimaxClient) GetTaskStatus(taskID string) (*VideoResult, error) {
 	}
 
 	if queryResult.BaseResp.StatusCode != 0 {
-		return nil, fmt.Errorf("minimax error: %s", queryResult.BaseResp.StatusMsg)
+		return nil, fmt.Errorf("minimax error: %s (code=%d, body=%s)", queryResult.BaseResp.StatusMsg, queryResult.BaseResp.StatusCode, string(body))
 	}
 
 	videoResult := &VideoResult{
@@ -247,8 +282,8 @@ func (c *MinimaxClient) GetTaskStatus(taskID string) (*VideoResult, error) {
 	}
 
 	// 如果状态是 Success 且有 file_id，则获取文件下载地址
-	if queryResult.Status == "Success" && queryResult.FileID != "" {
-		downloadURL, err := c.getFileDownloadURL(queryResult.FileID)
+	if queryResult.Status == "Success" && string(queryResult.FileID) != "" {
+		downloadURL, err := c.getFileDownloadURL(string(queryResult.FileID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get download URL: %w", err)
 		}
@@ -294,7 +329,7 @@ func (c *MinimaxClient) getFileDownloadURL(fileID string) (string, error) {
 	}
 
 	if fileResult.BaseResp.StatusCode != 0 {
-		return "", fmt.Errorf("minimax error: %s", fileResult.BaseResp.StatusMsg)
+		return "", fmt.Errorf("minimax error: %s (code=%d, body=%s)", fileResult.BaseResp.StatusMsg, fileResult.BaseResp.StatusCode, string(body))
 	}
 
 	return fileResult.File.DownloadURL, nil

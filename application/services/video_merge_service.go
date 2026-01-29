@@ -291,7 +291,7 @@ func (s *VideoMergeService) updateMergeError(mergeID uint, errorMsg string) {
 }
 
 func (s *VideoMergeService) getVideoClient(provider string) (video.VideoClient, error) {
-	config, err := s.aiService.GetDefaultConfig("video")
+	config, err := s.aiService.GetDefaultConfigByProvider("video", provider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video config: %w", err)
 	}

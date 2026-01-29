@@ -332,6 +332,27 @@ func (s *AIService) GetDefaultConfig(serviceType string) (*models.AIServiceConfi
 	return &config, nil
 }
 
+// GetDefaultConfigByProvider 根据服务类型和 provider 获取默认配置
+func (s *AIService) GetDefaultConfigByProvider(serviceType string, provider string) (*models.AIServiceConfig, error) {
+	if provider == "" {
+		return s.GetDefaultConfig(serviceType)
+	}
+
+	var config models.AIServiceConfig
+	err := s.db.Where("service_type = ? AND is_active = ? AND provider = ?", serviceType, true, provider).
+		Order("priority DESC, created_at DESC").
+		First(&config).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("no active config found for provider: " + provider)
+		}
+		return nil, err
+	}
+
+	return &config, nil
+}
+
 // GetConfigForModel 根据服务类型和模型名称获取优先级最高的激活配置
 func (s *AIService) GetConfigForModel(serviceType string, modelName string) (*models.AIServiceConfig, error) {
 	var configs []models.AIServiceConfig
@@ -353,6 +374,32 @@ func (s *AIService) GetConfigForModel(serviceType string, modelName string) (*mo
 	}
 
 	return nil, errors.New("no active config found for model: " + modelName)
+}
+
+// GetConfigForModelAndProvider 根据服务类型、模型名称、provider 获取配置
+func (s *AIService) GetConfigForModelAndProvider(serviceType string, modelName string, provider string) (*models.AIServiceConfig, error) {
+	if provider == "" {
+		return s.GetConfigForModel(serviceType, modelName)
+	}
+
+	var configs []models.AIServiceConfig
+	err := s.db.Where("service_type = ? AND is_active = ? AND provider = ?", serviceType, true, provider).
+		Order("priority DESC, created_at DESC").
+		Find(&configs).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, config := range configs {
+		for _, model := range config.Model {
+			if model == modelName {
+				return &config, nil
+			}
+		}
+	}
+
+	return nil, errors.New("no active config found for model: " + modelName + " provider: " + provider)
 }
 
 func (s *AIService) GetAIClient(serviceType string) (ai.AIClient, error) {

@@ -487,7 +487,16 @@ func (s *VideoGenerationService) getVideoClient(provider string, modelName strin
 	var config *models.AIServiceConfig
 	var err error
 
-	if modelName != "" {
+	if provider != "" {
+		if modelName != "" {
+			config, err = s.aiService.GetConfigForModelAndProvider("video", modelName, provider)
+		} else {
+			config, err = s.aiService.GetDefaultConfigByProvider("video", provider)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("no video AI config found for provider %s: %w", provider, err)
+		}
+	} else if modelName != "" {
 		config, err = s.aiService.GetConfigForModel("video", modelName)
 		if err != nil {
 			s.log.Warnw("Failed to get config for model, using default", "model", modelName, "error", err)
