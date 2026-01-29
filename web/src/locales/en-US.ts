@@ -105,6 +105,10 @@ export default {
       apiKey: 'API Key',
       apiKeyPlaceholder: 'sk-...',
       apiKeyTip: 'Your API key',
+      concurrency: 'Concurrency',
+      concurrencyOn: 'On',
+      concurrencyOff: 'Off',
+      concurrencyTip: 'Turn off to force serial requests for providers with low concurrency limits',
       isActive: 'Active Status'
     },
     actions: {

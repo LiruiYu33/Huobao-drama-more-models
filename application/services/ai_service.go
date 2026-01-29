@@ -379,12 +379,20 @@ func (s *AIService) GetAIClient(serviceType string) (ai.AIClient, error) {
 	}
 
 	// 根据 provider 创建对应的客户端
+	settings, settingsErr := parseAIServiceSettings(config.Settings)
+	if settingsErr != nil {
+		s.log.Warnw("Failed to parse AI config settings", "error", settingsErr, "config_id", config.ID)
+	}
+	limiter := getLimiterForConfig(config.ID, settings.concurrencyLimit())
+
 	switch config.Provider {
 	case "gemini", "google":
-		return ai.NewGeminiClient(config.BaseURL, config.APIKey, model, endpoint), nil
+		client := ai.NewGeminiClient(config.BaseURL, config.APIKey, model, endpoint)
+		return wrapAIClientWithLimiter(client, limiter), nil
 	default:
 		// openai, chatfire 等其他厂商都使用 OpenAI 格式
-		return ai.NewOpenAIClient(config.BaseURL, config.APIKey, model, endpoint), nil
+		client := ai.NewOpenAIClient(config.BaseURL, config.APIKey, model, endpoint)
+		return wrapAIClientWithLimiter(client, limiter), nil
 	}
 }
 
@@ -407,12 +415,20 @@ func (s *AIService) GetAIClientForModel(serviceType string, modelName string) (a
 	}
 
 	// 根据 provider 创建对应的客户端
+	settings, settingsErr := parseAIServiceSettings(config.Settings)
+	if settingsErr != nil {
+		s.log.Warnw("Failed to parse AI config settings", "error", settingsErr, "config_id", config.ID)
+	}
+	limiter := getLimiterForConfig(config.ID, settings.concurrencyLimit())
+
 	switch config.Provider {
 	case "gemini", "google":
-		return ai.NewGeminiClient(config.BaseURL, config.APIKey, modelName, endpoint), nil
+		client := ai.NewGeminiClient(config.BaseURL, config.APIKey, modelName, endpoint)
+		return wrapAIClientWithLimiter(client, limiter), nil
 	default:
 		// openai, chatfire 等其他厂商都使用 OpenAI 格式
-		return ai.NewOpenAIClient(config.BaseURL, config.APIKey, modelName, endpoint), nil
+		client := ai.NewOpenAIClient(config.BaseURL, config.APIKey, modelName, endpoint)
+		return wrapAIClientWithLimiter(client, limiter), nil
 	}
 }
 

@@ -123,6 +123,10 @@ export default {
       apiKey: 'API Key',
       apiKeyPlaceholder: 'sk-...',
       apiKeyTip: '您的 API 密钥',
+      concurrency: '并发请求',
+      concurrencyOn: '开启',
+      concurrencyOff: '关闭',
+      concurrencyTip: '关闭后该配置将按顺序串行请求，适用于并发限制较低的厂商',
       isActive: '启用状态'
     },
     actions: {

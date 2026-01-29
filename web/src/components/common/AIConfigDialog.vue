@@ -210,6 +210,15 @@
           <div class="form-tip">{{ $t("aiConfig.form.apiKeyTip") }}</div>
         </el-form-item>
 
+        <el-form-item :label="$t('aiConfig.form.concurrency')">
+          <el-switch
+            v-model="form.concurrency_enabled"
+            :active-text="$t('aiConfig.form.concurrencyOn')"
+            :inactive-text="$t('aiConfig.form.concurrencyOff')"
+          />
+          <div class="form-tip">{{ $t("aiConfig.form.concurrencyTip") }}</div>
+        </el-form-item>
+
         <el-form-item v-if="isEdit" :label="$t('aiConfig.form.isActive')">
           <el-switch v-model="form.is_active" />
         </el-form-item>
@@ -294,7 +303,12 @@ const quickSetupApiKey = ref("");
 const quickSetupLoading = ref(false);
 
 const form = reactive<
-  CreateAIConfigRequest & { is_active?: boolean; provider?: string }
+  CreateAIConfigRequest & {
+    is_active?: boolean;
+    provider?: string;
+    concurrency_enabled?: boolean;
+    settings?: string;
+  }
 >({
   service_type: "text",
   provider: "",
@@ -304,6 +318,8 @@ const form = reactive<
   model: [],
   priority: 0,
   is_active: true,
+  concurrency_enabled: true,
+  settings: "",
 });
 
 // Provider configs
@@ -565,6 +581,7 @@ const showCreateDialog = () => {
 const handleEdit = (config: AIServiceConfig) => {
   isEdit.value = true;
   editingId.value = config.id;
+  const parsedSettings = parseSettings(config.settings);
 
   Object.assign(form, {
     service_type: config.service_type,
@@ -575,6 +592,8 @@ const handleEdit = (config: AIServiceConfig) => {
     model: Array.isArray(config.model) ? config.model : [config.model],
     priority: config.priority || 0,
     is_active: config.is_active,
+    concurrency_enabled: getConcurrencyEnabled(parsedSettings),
+    settings: config.settings || "",
   });
   editDialogVisible.value = true;
 };
@@ -655,6 +674,10 @@ const handleSubmit = async () => {
 
     submitting.value = true;
     try {
+      const settings = buildSettingsPayload(
+        form.settings,
+        form.concurrency_enabled ?? true,
+      );
       if (isEdit.value && editingId.value) {
         const updateData: UpdateAIConfigRequest = {
           name: form.name,
@@ -664,11 +687,22 @@ const handleSubmit = async () => {
           model: form.model,
           priority: form.priority,
           is_active: form.is_active,
+          settings,
         };
         await aiAPI.update(editingId.value, updateData);
         ElMessage.success("更新成功");
       } else {
-        await aiAPI.create(form);
+        const createData: CreateAIConfigRequest = {
+          service_type: form.service_type,
+          provider: form.provider,
+          name: form.name,
+          base_url: form.base_url,
+          api_key: form.api_key,
+          model: form.model,
+          priority: form.priority,
+          settings,
+        };
+        await aiAPI.create(createData);
         ElMessage.success("创建成功");
       }
 
@@ -727,8 +761,42 @@ const resetForm = () => {
     model: [],
     priority: 0,
     is_active: true,
+    concurrency_enabled: true,
+    settings: "",
   });
   formRef.value?.resetFields();
+};
+
+const parseSettings = (raw?: string): Record<string, any> => {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed;
+    }
+  } catch {
+    // ignore invalid settings
+  }
+  return {};
+};
+
+const getConcurrencyEnabled = (settings: Record<string, any>): boolean => {
+  if (typeof settings.concurrency_enabled === "boolean") {
+    return settings.concurrency_enabled;
+  }
+  if (typeof settings.max_concurrency === "number") {
+    return settings.max_concurrency !== 1;
+  }
+  return true;
+};
+
+const buildSettingsPayload = (
+  raw: string | undefined,
+  concurrencyEnabled: boolean,
+): string => {
+  const settings = parseSettings(raw);
+  settings.concurrency_enabled = concurrencyEnabled;
+  return JSON.stringify(settings);
 };
 
 const showQuickSetupDialog = () => {
