@@ -524,7 +524,7 @@ func (s *VideoGenerationService) getVideoClient(provider string, modelName strin
 		endpoint = "/contents/generations/tasks"
 		queryEndpoint = "/contents/generations/tasks/{taskId}"
 		return video.NewVolcesArkClient(baseURL, apiKey, model, endpoint, queryEndpoint), nil
-	case "openai":
+	case "openai", "siliconflow":
 		// OpenAI Sora 使用 /v1/videos 端点
 		return video.NewOpenAISoraClient(baseURL, apiKey, model), nil
 	case "runway":

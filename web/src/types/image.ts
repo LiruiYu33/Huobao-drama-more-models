@@ -31,7 +31,13 @@ export interface ImageGeneration {
 
 export type ImageStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
-export type ImageProvider = 'openai' | 'dalle' | 'midjourney' | 'stable_diffusion' | 'sd'
+export type ImageProvider =
+  | 'openai'
+  | 'dalle'
+  | 'midjourney'
+  | 'stable_diffusion'
+  | 'sd'
+  | 'siliconflow'
 
 export interface GenerateImageRequest {
   scene_id?: number

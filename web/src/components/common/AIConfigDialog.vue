@@ -363,6 +363,11 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
       models: ["nano-banana-pro", "doubao-seedream-4-5-251128"],
     },
     {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
+    },
+    {
       id: "gemini",
       name: "Google Gemini",
       models: ["gemini-3-pro-image-preview"],
@@ -393,6 +398,11 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
         "sora-2",
         "sora-2-pro",
       ],
+    },
+    {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
     },
     {
       id: "minimax",
@@ -455,7 +465,7 @@ const fullEndpointExample = computed(() => {
       endpoint = "/contents/generations/tasks";
     } else if (provider === "minimax") {
       endpoint = "/video_generation";
-    } else if (provider === "openai") {
+    } else if (provider === "openai" || provider === "siliconflow") {
       endpoint = "/videos";
     } else {
       endpoint = "/video/generations";

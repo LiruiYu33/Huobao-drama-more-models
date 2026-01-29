@@ -273,6 +273,11 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
       models: ["doubao-seedream-4-5-251128", "nano-banana-pro"],
     },
     {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
+    },
+    {
       id: "gemini",
       name: "Google Gemini",
       models: ["gemini-3-pro-image-preview"],
@@ -303,6 +308,11 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
         "sora-2",
         "sora-2-pro",
       ],
+    },
+    {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
     },
     { id: "openai", name: "OpenAI", models: ["sora-2", "sora-2-pro"] },
     //    { id: 'minimax', name: 'MiniMax', models: ['MiniMax-Hailuo-2.3', 'MiniMax-Hailuo-2.3-Fast', 'MiniMax-Hailuo-02'] }
@@ -364,7 +374,7 @@ const fullEndpointExample = computed(() => {
       provider === "volces"
     ) {
       endpoint = "/contents/generations/tasks";
-    } else if (provider === "openai") {
+    } else if (provider === "openai" || provider === "siliconflow") {
       endpoint = "/videos";
     } else {
       endpoint = "/video/generations";

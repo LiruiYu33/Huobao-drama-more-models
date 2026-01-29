@@ -72,6 +72,7 @@ const (
 	VideoProviderPika   VideoProvider = "pika"
 	VideoProviderDoubao VideoProvider = "doubao"
 	VideoProviderOpenAI VideoProvider = "openai"
+	VideoProviderSiliconFlow VideoProvider = "siliconflow"
 )
 
 func (VideoGeneration) TableName() string {

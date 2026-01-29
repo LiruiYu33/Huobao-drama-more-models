@@ -479,7 +479,7 @@ func (s *ImageGenerationService) getImageClient(provider string) (image.ImageCli
 	var queryEndpoint string
 
 	switch actualProvider {
-	case "openai", "dalle":
+	case "openai", "dalle", "siliconflow":
 		endpoint = "/images/generations"
 		return image.NewOpenAIImageClient(config.BaseURL, config.APIKey, model, endpoint), nil
 	case "chatfire":
@@ -537,7 +537,7 @@ func (s *ImageGenerationService) getImageClientWithModel(provider string, modelN
 	var queryEndpoint string
 
 	switch actualProvider {
-	case "openai", "dalle":
+	case "openai", "dalle", "siliconflow":
 		endpoint = "/images/generations"
 		return image.NewOpenAIImageClient(config.BaseURL, config.APIKey, model, endpoint), nil
 	case "chatfire":

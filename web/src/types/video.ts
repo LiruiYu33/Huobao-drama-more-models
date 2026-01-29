@@ -31,7 +31,7 @@ export interface VideoGeneration {
 
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
-export type VideoProvider = 'runway' | 'pika' | 'doubao' | 'openai'
+export type VideoProvider = 'runway' | 'pika' | 'doubao' | 'openai' | 'siliconflow'
 
 export interface GenerateVideoRequest {
   storyboard_id?: number

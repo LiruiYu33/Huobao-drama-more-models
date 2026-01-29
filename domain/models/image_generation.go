@@ -65,6 +65,7 @@ const (
 	ProviderMidjourney      ImageProvider = "midjourney"
 	ProviderStableDiffusion ImageProvider = "stable_diffusion"
 	ProviderDALLE           ImageProvider = "dalle"
+	ProviderSiliconFlow     ImageProvider = "siliconflow"
 )
 
 // ImageType 图片类型
