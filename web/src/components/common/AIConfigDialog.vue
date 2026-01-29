@@ -322,6 +322,11 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
       models: [],
     },
     {
+      id: "stepfun",
+      name: "阶跃星辰",
+      models: [],
+    },
+    {
       id: "openai",
       name: "OpenAI",
       models: ["gpt-5.2", "gemini-3-flash-preview"],
@@ -522,6 +527,7 @@ const generateConfigName = (
     gemini: "Gemini",
     google: "Google",
     siliconflow: "硅基流动",
+    stepfun: "阶跃星辰",
     minimax: "MiniMax 国内",
     "minimax-intl": "MiniMax 国际",
   };
@@ -694,6 +700,8 @@ const handleProviderChange = () => {
     form.base_url = "https://api.minimax.io/v1";
   } else if (form.provider === "siliconflow") {
     form.base_url = "https://api.siliconflow.cn/v1";
+  } else if (form.provider === "stepfun") {
+    form.base_url = "https://api.stepfun.com/v1";
   } else if (form.provider === "volces" || form.provider === "volcengine") {
     form.base_url = "https://ark.cn-beijing.volces.com/api/v3";
   } else if (form.provider === "openai") {
