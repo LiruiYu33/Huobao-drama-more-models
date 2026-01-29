@@ -168,6 +168,14 @@
             <div class="form-tip">{{ $t("aiConfig.form.defaultImageSizeTip") }}</div>
           </el-form-item>
 
+          <el-form-item
+            v-if="form.service_type === 'image'"
+            :label="$t('aiConfig.form.stripPromptJson')"
+          >
+            <el-switch v-model="form.strip_prompt_json" />
+            <div class="form-tip">{{ $t("aiConfig.form.stripPromptJsonTip") }}</div>
+          </el-form-item>
+
           <el-form-item :label="$t('aiConfig.form.concurrency')">
             <el-switch
               v-model="form.concurrency_enabled"
@@ -243,6 +251,7 @@ const form = reactive<
     settings?: string;
     image_default_size_option?: string;
     image_default_size_custom?: string;
+    strip_prompt_json?: boolean;
   }
 >({
   service_type: "text",
@@ -257,6 +266,7 @@ const form = reactive<
   settings: "",
   image_default_size_option: "1024x1024",
   image_default_size_custom: "",
+  strip_prompt_json: false,
 });
 
 // 厂商和模型配置
@@ -547,6 +557,7 @@ const handleEdit = (config: AIServiceConfig) => {
     settings: config.settings || "",
     image_default_size_option: sizeOption,
     image_default_size_custom: sizeOption === "custom" ? defaultImageSize : "",
+    strip_prompt_json: getStripPromptJSON(parsedSettings),
   });
   dialogVisible.value = true;
 };
@@ -639,6 +650,7 @@ const handleSubmit = async () => {
         form.settings,
         form.concurrency_enabled ?? true,
         getSelectedImageSize(),
+        form.strip_prompt_json ?? false,
       );
       if (isEdit.value && editingId.value) {
         const updateData: UpdateAIConfigRequest = {
@@ -740,6 +752,7 @@ const resetForm = () => {
     settings: "",
     image_default_size_option: "1024x1024",
     image_default_size_custom: "",
+    strip_prompt_json: false,
   });
   formRef.value?.resetFields();
 };
@@ -771,12 +784,14 @@ const buildSettingsPayload = (
   raw: string | undefined,
   concurrencyEnabled: boolean,
   defaultImageSize: string,
+  stripPromptJSON: boolean,
 ): string => {
   const settings = parseSettings(raw);
   settings.concurrency_enabled = concurrencyEnabled;
   if (defaultImageSize) {
     settings.default_image_size = defaultImageSize;
   }
+  settings.strip_prompt_json = stripPromptJSON;
   return JSON.stringify(settings);
 };
 
@@ -797,6 +812,13 @@ const getSelectedImageSize = (): string => {
 
 const isValidImageSize = (value: string): boolean => {
   return /^\d+x\d+$/.test(value);
+};
+
+const getStripPromptJSON = (settings: Record<string, any>): boolean => {
+  if (typeof settings.strip_prompt_json === "boolean") {
+    return settings.strip_prompt_json;
+  }
+  return false;
 };
 
 const goBack = () => {

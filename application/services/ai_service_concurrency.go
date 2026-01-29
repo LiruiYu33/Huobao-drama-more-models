@@ -11,6 +11,7 @@ type AIServiceSettings struct {
 	ConcurrencyEnabled *bool `json:"concurrency_enabled"`
 	MaxConcurrency     *int  `json:"max_concurrency"`
 	DefaultImageSize   string `json:"default_image_size"`
+	StripPromptJSON    *bool `json:"strip_prompt_json"`
 }
 
 func parseAIServiceSettings(raw string) (AIServiceSettings, error) {

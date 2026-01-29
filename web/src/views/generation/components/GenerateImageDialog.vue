@@ -65,9 +65,12 @@
 
       <el-form-item :label="$t('imageDialog.imageSize')">
         <el-select v-model="form.size" :placeholder="$t('imageDialog.selectSize')">
-          <el-option :label="`1024x1024 (${$t('imageDialog.square')})`" value="1024x1024" />
-          <el-option :label="`1792x1024 (${$t('imageDialog.landscape')})`" value="1792x1024" />
-          <el-option :label="`1024x1792 (${$t('imageDialog.portrait')})`" value="1024x1792" />
+          <el-option
+            v-for="option in imageSizeOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
         </el-select>
       </el-form-item>
 
@@ -117,9 +120,11 @@ import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { imageAPI } from '@/api/image'
+import { aiAPI } from '@/api/ai'
 import { dramaAPI } from '@/api/drama'
 import type { Drama, Scene } from '@/types/drama'
 import type { GenerateImageRequest } from '@/types/image'
+import type { AIServiceConfig } from '@/types/ai'
 
 interface Props {
   modelValue: boolean
@@ -158,6 +163,21 @@ const form = reactive<GenerateImageRequest>({
   seed: undefined
 })
 
+const standardImageSizes = [
+  { value: '1024x1024', label: `1024x1024 (${t('imageDialog.square')})` },
+  { value: '1792x1024', label: `1792x1024 (${t('imageDialog.landscape')})` },
+  { value: '1024x1792', label: `1024x1792 (${t('imageDialog.portrait')})` }
+]
+
+const imageSizeOptions = computed(() => {
+  const options = [...standardImageSizes]
+  const current = (form.size || '').trim()
+  if (current && !options.some((opt) => opt.value === current)) {
+    options.unshift({ value: current, label: current })
+  }
+  return options
+})
+
 const rules: FormRules = {
   drama_id: [
     { required: true, message: t('imageDialog.pleaseSelectDrama'), trigger: 'change' }
@@ -186,6 +206,7 @@ const cfgMarks = {
 watch(() => props.modelValue, (val) => {
   if (val) {
     loadDramas()
+    loadImageDefaults()
     if (props.dramaId) {
       form.drama_id = props.dramaId
       loadScenes(props.dramaId)
@@ -219,6 +240,35 @@ const loadScenes = async (dramaId: string) => {
   } catch (error: any) {
     console.error('Failed to load scenes:', error)
   }
+}
+
+const loadImageDefaults = async () => {
+  try {
+    const configs = await aiAPI.list('image')
+    const activeConfigs = configs.filter((config: AIServiceConfig) => config.is_active)
+    const primaryConfig = activeConfigs[0]
+    if (!primaryConfig) return
+
+    const settings = parseSettings(primaryConfig.settings)
+    if (settings.default_image_size) {
+      form.size = settings.default_image_size
+    }
+  } catch (error: any) {
+    console.error('Failed to load image defaults:', error)
+  }
+}
+
+const parseSettings = (raw?: string): Record<string, any> => {
+  if (!raw) return {}
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object') {
+      return parsed
+    }
+  } catch {
+    // ignore invalid settings
+  }
+  return {}
 }
 
 const onDramaChange = (dramaId: string) => {

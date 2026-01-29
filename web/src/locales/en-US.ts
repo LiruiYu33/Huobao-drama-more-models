@@ -109,6 +109,8 @@ export default {
       defaultImageSizePlaceholder: 'e.g., 1024x1024',
       defaultImageSizeTip: 'Used only when no size is specified',
       defaultImageSizeInvalid: 'Custom size must be in “widthxheight” format',
+      stripPromptJson: 'Strip JSON in Prompt',
+      stripPromptJsonTip: 'Remove embedded style_config JSON to avoid provider errors',
       concurrency: 'Concurrency',
       concurrencyOn: 'On',
       concurrencyOff: 'Off',

@@ -159,14 +159,7 @@ func (s *ImageGenerationService) GenerateImage(request *GenerateImageRequest) (*
 }
 
 func (s *ImageGenerationService) resolveDefaultImageSize(model string) string {
-	config, err := s.aiService.GetDefaultConfig("image")
-	if model != "" {
-		if modelConfig, modelErr := s.aiService.GetConfigForModel("image", model); modelErr == nil {
-			config = modelConfig
-		} else {
-			s.log.Warnw("Failed to get image config for model, using default", "model", model, "error", modelErr)
-		}
-	}
+	config := s.getImageConfigForModel(model)
 
 	if config != nil {
 		settings, settingsErr := parseAIServiceSettings(config.Settings)
@@ -182,6 +175,96 @@ func (s *ImageGenerationService) resolveDefaultImageSize(model string) string {
 	}
 
 	return "1024x1024"
+}
+
+func (s *ImageGenerationService) getImageConfigForModel(model string) *models.AIServiceConfig {
+	config, err := s.aiService.GetDefaultConfig("image")
+	if err != nil {
+		s.log.Warnw("Failed to get default image config", "error", err)
+		config = nil
+	}
+
+	if model == "" {
+		return config
+	}
+
+	modelConfig, modelErr := s.aiService.GetConfigForModel("image", model)
+	if modelErr != nil {
+		s.log.Warnw("Failed to get image config for model, using default", "model", model, "error", modelErr)
+		return config
+	}
+	return modelConfig
+}
+
+func stripStyleConfigJSON(input string) string {
+	start := strings.Index(input, "{\"style_config\"")
+	if start == -1 {
+		return strings.TrimSpace(input)
+	}
+
+	depth := 0
+	end := -1
+	for i := start; i < len(input); i++ {
+		switch input[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				end = i
+				break
+			}
+		}
+		if end != -1 {
+			break
+		}
+	}
+
+	if end == -1 {
+		return strings.TrimSpace(input)
+	}
+
+	trimmed := input[:start] + input[end+1:]
+	return strings.TrimSpace(trimmed)
+}
+
+func (s *ImageGenerationService) normalizeImageSizeForProvider(config *models.AIServiceConfig, size string) string {
+	if config == nil {
+		return size
+	}
+
+	provider := strings.ToLower(strings.TrimSpace(config.Provider))
+	if provider != "siliconflow" {
+		return size
+	}
+
+	allowed := map[string]bool{
+		"1024x1024": true,
+		"1024x1536": true,
+		"1536x1024": true,
+		"768x768":   true,
+		"512x512":   true,
+	}
+
+	if size == "" {
+		return size
+	}
+
+	if allowed[size] {
+		return size
+	}
+
+	fallback := s.resolveDefaultImageSize("")
+	if fallback == "" || !allowed[fallback] {
+		fallback = "1024x1024"
+	}
+
+	s.log.Warnw("Image size not supported for siliconflow, using fallback",
+		"model", config.Model,
+		"requested_size", size,
+		"fallback_size", fallback,
+		"config_id", config.ID)
+	return fallback
 }
 
 func (s *ImageGenerationService) ProcessImageGeneration(imageGenID uint) {
@@ -208,6 +291,11 @@ func (s *ImageGenerationService) ProcessImageGeneration(imageGenID uint) {
 		s.log.Errorw("Failed to get image client", "error", err, "provider", imageGen.Provider, "model", imageGen.Model)
 		s.updateImageGenError(imageGenID, err.Error())
 		return
+	}
+
+	configForModel := s.getImageConfigForModel(imageGen.Model)
+	if configForModel != nil {
+		imageGen.Size = s.normalizeImageSizeForProvider(configForModel, imageGen.Size)
 	}
 
 	// 解析参考图片
@@ -286,6 +374,14 @@ func (s *ImageGenerationService) ProcessImageGeneration(imageGenID uint) {
 	}
 
 	prompt := imageGen.Prompt
+	if cfg := configForModel; cfg != nil {
+		settings, settingsErr := parseAIServiceSettings(cfg.Settings)
+		if settingsErr != nil {
+			s.log.Warnw("Failed to parse image config settings", "error", settingsErr, "config_id", cfg.ID)
+		} else if settings.StripPromptJSON != nil && *settings.StripPromptJSON {
+			prompt = stripStyleConfigJSON(prompt)
+		}
+	}
 	prompt += ", imageRatio:" + imageRatio
 	result, err := client.GenerateImage(prompt, opts...)
 	if err != nil {

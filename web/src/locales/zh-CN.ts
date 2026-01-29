@@ -127,6 +127,8 @@ export default {
       defaultImageSizePlaceholder: '例如：1024x1024',
       defaultImageSizeTip: '仅在未指定尺寸时生效',
       defaultImageSizeInvalid: '自定义尺寸格式应为“宽x高”',
+      stripPromptJson: '清理提示词JSON',
+      stripPromptJsonTip: '自动移除提示词中的 style_config JSON，避免部分厂商报错',
       concurrency: '并发请求',
       concurrencyOn: '开启',
       concurrencyOff: '关闭',
