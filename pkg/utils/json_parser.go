@@ -62,14 +62,15 @@ func SafeParseAIJSON(aiResponse string, v interface{}) error {
 	}
 
 	// 3. 尝试解析JSON
-	err := json.Unmarshal([]byte(jsonMatch), v)
+	normalized := normalizeJSONString(jsonMatch)
+	err := json.Unmarshal([]byte(normalized), v)
 	if err == nil {
 		return nil // 解析成功
 	}
 
 	// 4. 如果解析失败，尝试修复截断的JSON
-	fixedJSON := attemptJSONRepair(jsonMatch)
-	if fixedJSON != jsonMatch {
+	fixedJSON := attemptJSONRepair(normalized)
+	if fixedJSON != normalized {
 		if err := json.Unmarshal([]byte(fixedJSON), v); err == nil {
 			return nil // 修复后解析成功
 		}
@@ -91,7 +92,7 @@ func SafeParseAIJSON(aiResponse string, v interface{}) error {
 		start := maxInt(0, errorPos-100)
 		end := minInt(len(jsonMatch), errorPos+100)
 
-		context := jsonMatch[start:end]
+		context := normalized[start:end]
 		marker := strings.Repeat(" ", errorPos-start) + "^"
 
 		return fmt.Errorf(
@@ -102,7 +103,7 @@ func SafeParseAIJSON(aiResponse string, v interface{}) error {
 		)
 	}
 
-	return fmt.Errorf("JSON解析失败: %w\n原始响应: %s", err, truncateString(jsonMatch, 300))
+	return fmt.Errorf("JSON解析失败: %w\n原始响应: %s", err, truncateString(normalized, 300))
 }
 
 // attemptJSONRepair 尝试修复常见的JSON问题
@@ -164,6 +165,58 @@ func attemptJSONRepair(jsonStr string) string {
 	}
 
 	return trimmed
+}
+
+// normalizeJSONString 修复字符串内未转义的控制字符（常见于AI输出的换行/回车/制表）
+func normalizeJSONString(jsonStr string) string {
+	var b strings.Builder
+	b.Grow(len(jsonStr))
+
+	inString := false
+	escaped := false
+
+	for i := 0; i < len(jsonStr); i++ {
+		ch := jsonStr[i]
+
+		if escaped {
+			// 保留转义后的字符
+			b.WriteByte(ch)
+			escaped = false
+			continue
+		}
+
+		if ch == '\\' {
+			b.WriteByte(ch)
+			escaped = true
+			continue
+		}
+
+		if ch == '"' {
+			inString = !inString
+			b.WriteByte(ch)
+			continue
+		}
+
+		if inString {
+			switch ch {
+			case '\n':
+				b.WriteString(`\n`)
+				continue
+			case '\r':
+				// 兼容 Windows 换行
+				// 如果后面是 \n，则交给下一轮处理
+				b.WriteString(`\r`)
+				continue
+			case '\t':
+				b.WriteString(`\t`)
+				continue
+			}
+		}
+
+		b.WriteByte(ch)
+	}
+
+	return b.String()
 }
 
 // ExtractJSONFromText 从文本中提取JSON对象或数组
