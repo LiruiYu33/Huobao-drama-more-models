@@ -28,6 +28,8 @@ This fork expands model connectivity beyond the official defaults. Configure eve
 
 - **OpenAI-compatible**: `provider=openai` or `provider=chatfire` (any endpoint that implements `/chat/completions`)
 - **Gemini native**: `provider=gemini` or `provider=google`
+- **SiliconFlow**: `provider=siliconflow` (OpenAI-compatible endpoint)
+- **MiniMax**: `provider=minimax` (CN) or `provider=minimax-intl` (intl)
 
 **Image**
 
@@ -206,6 +208,22 @@ ai:
 - `storage.local_path`: Local file storage path
 - `storage.base_url`: Static resource access URL
 - `ai.default_*_provider`: AI service provider configuration (API keys configured in Web UI)
+
+**Provider Presets (Text LLM examples):**
+
+```yaml
+# SiliconFlow (OpenAI-compatible)
+provider: "siliconflow"
+base_url: "https://api.siliconflow.cn/v1"
+
+# MiniMax (CN)
+provider: "minimax"
+base_url: "https://api.minimaxi.com/v1"
+
+# MiniMax (Intl)
+provider: "minimax-intl"
+base_url: "https://api.minimax.io/v1"
+```
 
 ### 📥 Installation
 

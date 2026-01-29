@@ -28,6 +28,8 @@ Huobao Drama 是一个基于 AI 的短剧自动化生产平台，实现从剧本
 
 - **OpenAI 兼容**：`provider=openai` 或 `provider=chatfire`（实现 `/chat/completions` 的接口即可）
 - **Gemini 原生**：`provider=gemini` 或 `provider=google`
+- **硅基流动**：`provider=siliconflow`（OpenAI 兼容接口）
+- **MiniMax**：`provider=minimax`（国内）或 `provider=minimax-intl`（国际）
 
 **图片**
 
@@ -206,6 +208,22 @@ ai:
 - `storage.local_path`: 本地文件存储路径
 - `storage.base_url`: 静态资源访问 URL
 - `ai.default_*_provider`: AI 服务提供商配置（在 Web 界面中配置具体的 API Key）
+
+**厂商示例（文本 LLM）：**
+
+```yaml
+# 硅基流动（OpenAI 兼容）
+provider: "siliconflow"
+base_url: "https://api.siliconflow.cn/v1"
+
+# MiniMax（国内）
+provider: "minimax"
+base_url: "https://api.minimaxi.com/v1"
+
+# MiniMax（国际）
+provider: "minimax-intl"
+base_url: "https://api.minimax.io/v1"
+```
 
 ### 📥 安装依赖
 

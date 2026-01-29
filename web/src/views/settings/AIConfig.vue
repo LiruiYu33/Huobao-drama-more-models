@@ -227,6 +227,11 @@ interface ProviderConfig {
 const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
   text: [
     {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
+    },
+    {
       id: "openai",
       name: "OpenAI",
       models: ["gpt-5.2", "gemini-3-flash-preview"],
@@ -244,6 +249,16 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
       id: "gemini",
       name: "Google Gemini",
       models: ["gemini-2.5-pro", "gemini-3-flash-preview"],
+    },
+    {
+      id: "minimax",
+      name: "MiniMax 国内",
+      models: [],
+    },
+    {
+      id: "minimax-intl",
+      name: "MiniMax 国际",
+      models: [],
     },
   ],
   image: [
@@ -294,19 +309,9 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
   ],
 };
 
-// 当前可用的厂商列表（只显示有激活配置的）
+// 当前可用的厂商列表（显示所有可配置厂商）
 const availableProviders = computed(() => {
-  // 获取当前service_type下所有激活的配置
-  const activeConfigs = configs.value.filter(
-    (c) => c.service_type === form.service_type && c.is_active,
-  );
-
-  // 提取所有激活配置的provider，去重
-  const activeProviderIds = new Set(activeConfigs.map((c) => c.provider));
-
-  // 从providerConfigs中筛选出有激活配置的provider
-  const allProviders = providerConfigs[form.service_type] || [];
-  return allProviders.filter((p) => activeProviderIds.has(p.id));
+  return providerConfigs[form.service_type] || [];
 });
 
 // 当前可用的模型列表（从已激活的配置中获取）
@@ -416,6 +421,9 @@ const generateConfigName = (
     openai: "OpenAI",
     gemini: "Gemini",
     google: "Google",
+    siliconflow: "硅基流动",
+    minimax: "MiniMax 国内",
+    "minimax-intl": "MiniMax 国际",
   };
 
   const serviceNames: Record<AIServiceType, string> = {
@@ -580,6 +588,12 @@ const handleProviderChange = () => {
   // 根据厂商自动设置默认 base_url
   if (form.provider === "gemini" || form.provider === "google") {
     form.base_url = "https://api.chatfire.site";
+  } else if (form.provider === "siliconflow") {
+    form.base_url = "https://api.siliconflow.cn/v1";
+  } else if (form.provider === "minimax") {
+    form.base_url = "https://api.minimaxi.com/v1";
+  } else if (form.provider === "minimax-intl") {
+    form.base_url = "https://api.minimax.io/v1";
   } else {
     // openai, chatfire 等其他厂商
     form.base_url = "https://api.chatfire.site/v1";

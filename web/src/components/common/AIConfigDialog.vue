@@ -317,6 +317,11 @@ interface ProviderConfig {
 const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
   text: [
     {
+      id: "siliconflow",
+      name: "硅基流动",
+      models: [],
+    },
+    {
       id: "openai",
       name: "OpenAI",
       models: ["gpt-5.2", "gemini-3-flash-preview"],
@@ -334,6 +339,16 @@ const providerConfigs: Record<AIServiceType, ProviderConfig[]> = {
       id: "gemini",
       name: "Google Gemini",
       models: ["gemini-2.5-pro", "gemini-3-flash-preview"],
+    },
+    {
+      id: "minimax",
+      name: "MiniMax 国内",
+      models: [],
+    },
+    {
+      id: "minimax-intl",
+      name: "MiniMax 国际",
+      models: [],
     },
   ],
   image: [
@@ -496,6 +511,9 @@ const generateConfigName = (
     openai: "OpenAI",
     gemini: "Gemini",
     google: "Google",
+    siliconflow: "硅基流动",
+    minimax: "MiniMax 国内",
+    "minimax-intl": "MiniMax 国际",
   };
 
   const serviceNames: Record<AIServiceType, string> = {
@@ -662,6 +680,10 @@ const handleProviderChange = () => {
     form.base_url = "https://generativelanguage.googleapis.com";
   } else if (form.provider === "minimax") {
     form.base_url = "https://api.minimaxi.com/v1";
+  } else if (form.provider === "minimax-intl") {
+    form.base_url = "https://api.minimax.io/v1";
+  } else if (form.provider === "siliconflow") {
+    form.base_url = "https://api.siliconflow.cn/v1";
   } else if (form.provider === "volces" || form.provider === "volcengine") {
     form.base_url = "https://ark.cn-beijing.volces.com/api/v3";
   } else if (form.provider === "openai") {
