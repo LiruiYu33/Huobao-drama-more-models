@@ -210,6 +210,27 @@
           <div class="form-tip">{{ $t("aiConfig.form.apiKeyTip") }}</div>
         </el-form-item>
 
+        <el-form-item
+          v-if="form.service_type === 'image'"
+          :label="$t('aiConfig.form.defaultImageSize')"
+        >
+          <el-select v-model="form.image_default_size_option" style="width: 100%">
+            <el-option
+              v-for="option in imageSizeOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+          <el-input
+            v-if="form.image_default_size_option === 'custom'"
+            v-model="form.image_default_size_custom"
+            class="custom-size-input"
+            :placeholder="$t('aiConfig.form.defaultImageSizePlaceholder')"
+          />
+          <div class="form-tip">{{ $t("aiConfig.form.defaultImageSizeTip") }}</div>
+        </el-form-item>
+
         <el-form-item :label="$t('aiConfig.form.concurrency')">
           <el-switch
             v-model="form.concurrency_enabled"
@@ -259,6 +280,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   ElMessage,
   ElMessageBox,
@@ -283,6 +305,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: boolean];
   "config-updated": [];
 }>();
+const { t } = useI18n();
 
 const visible = computed({
   get: () => props.modelValue,
@@ -308,6 +331,8 @@ const form = reactive<
     provider?: string;
     concurrency_enabled?: boolean;
     settings?: string;
+    image_default_size_option?: string;
+    image_default_size_custom?: string;
   }
 >({
   service_type: "text",
@@ -320,6 +345,8 @@ const form = reactive<
   is_active: true,
   concurrency_enabled: true,
   settings: "",
+  image_default_size_option: "1024x1024",
+  image_default_size_custom: "",
 });
 
 // Provider configs
@@ -456,6 +483,15 @@ const availableModels = computed(() => {
   return providerConfig?.models || [];
 });
 
+const imageSizeOptions = [
+  { label: "1024x1024", value: "1024x1024" },
+  { label: "1024x1536", value: "1024x1536" },
+  { label: "1536x1024", value: "1536x1024" },
+  { label: "768x768", value: "768x768" },
+  { label: "512x512", value: "512x512" },
+  { label: "自定义", value: "custom" },
+];
+
 const fullEndpointExample = computed(() => {
   const baseUrl = form.base_url || "https://api.example.com";
   const provider = form.provider;
@@ -582,6 +618,12 @@ const handleEdit = (config: AIServiceConfig) => {
   isEdit.value = true;
   editingId.value = config.id;
   const parsedSettings = parseSettings(config.settings);
+  const defaultImageSize = getDefaultImageSize(parsedSettings);
+  const sizeOption = imageSizeOptions.find(
+    (option) => option.value === defaultImageSize,
+  )
+    ? defaultImageSize
+    : "custom";
 
   Object.assign(form, {
     service_type: config.service_type,
@@ -594,6 +636,8 @@ const handleEdit = (config: AIServiceConfig) => {
     is_active: config.is_active,
     concurrency_enabled: getConcurrencyEnabled(parsedSettings),
     settings: config.settings || "",
+    image_default_size_option: sizeOption,
+    image_default_size_custom: sizeOption === "custom" ? defaultImageSize : "",
   });
   editDialogVisible.value = true;
 };
@@ -674,9 +718,18 @@ const handleSubmit = async () => {
 
     submitting.value = true;
     try {
+      if (
+        form.service_type === "image" &&
+        form.image_default_size_option === "custom" &&
+        !isValidImageSize(form.image_default_size_custom || "")
+      ) {
+        ElMessage.warning(t("aiConfig.form.defaultImageSizeInvalid"));
+        return;
+      }
       const settings = buildSettingsPayload(
         form.settings,
         form.concurrency_enabled ?? true,
+        getSelectedImageSize(),
       );
       if (isEdit.value && editingId.value) {
         const updateData: UpdateAIConfigRequest = {
@@ -763,6 +816,8 @@ const resetForm = () => {
     is_active: true,
     concurrency_enabled: true,
     settings: "",
+    image_default_size_option: "1024x1024",
+    image_default_size_custom: "",
   });
   formRef.value?.resetFields();
 };
@@ -793,10 +848,33 @@ const getConcurrencyEnabled = (settings: Record<string, any>): boolean => {
 const buildSettingsPayload = (
   raw: string | undefined,
   concurrencyEnabled: boolean,
+  defaultImageSize: string,
 ): string => {
   const settings = parseSettings(raw);
   settings.concurrency_enabled = concurrencyEnabled;
+  if (defaultImageSize) {
+    settings.default_image_size = defaultImageSize;
+  }
   return JSON.stringify(settings);
+};
+
+const getDefaultImageSize = (settings: Record<string, any>): string => {
+  if (typeof settings.default_image_size === "string") {
+    return settings.default_image_size;
+  }
+  return "1024x1024";
+};
+
+const getSelectedImageSize = (): string => {
+  if (form.service_type !== "image") return "";
+  if (form.image_default_size_option === "custom") {
+    return (form.image_default_size_custom || "").trim();
+  }
+  return form.image_default_size_option || "";
+};
+
+const isValidImageSize = (value: string): boolean => {
+  return /^\d+x\d+$/.test(value);
 };
 
 const showQuickSetupDialog = () => {
@@ -1017,6 +1095,10 @@ watch(visible, (val) => {
   word-break: break-all;
   overflow-wrap: break-word;
   line-height: 1.5;
+}
+
+.custom-size-input {
+  margin-top: 0.5rem;
 }
 
 /* Dark mode */

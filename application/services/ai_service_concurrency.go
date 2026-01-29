@@ -10,6 +10,7 @@ import (
 type AIServiceSettings struct {
 	ConcurrencyEnabled *bool `json:"concurrency_enabled"`
 	MaxConcurrency     *int  `json:"max_concurrency"`
+	DefaultImageSize   string `json:"default_image_size"`
 }
 
 func parseAIServiceSettings(raw string) (AIServiceSettings, error) {

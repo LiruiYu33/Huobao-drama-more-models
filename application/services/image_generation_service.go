@@ -102,6 +102,9 @@ func (s *ImageGenerationService) GenerateImage(request *GenerateImageRequest) (*
 	if provider == "" {
 		provider = "openai"
 	}
+	if request.Size == "" && (request.Width == nil || request.Height == nil) {
+		request.Size = s.resolveDefaultImageSize(request.Model)
+	}
 
 	// 序列化参考图片
 	var referenceImagesJSON []byte
@@ -153,6 +156,32 @@ func (s *ImageGenerationService) GenerateImage(request *GenerateImageRequest) (*
 	go s.ProcessImageGeneration(imageGen.ID)
 
 	return imageGen, nil
+}
+
+func (s *ImageGenerationService) resolveDefaultImageSize(model string) string {
+	config, err := s.aiService.GetDefaultConfig("image")
+	if model != "" {
+		if modelConfig, modelErr := s.aiService.GetConfigForModel("image", model); modelErr == nil {
+			config = modelConfig
+		} else {
+			s.log.Warnw("Failed to get image config for model, using default", "model", model, "error", modelErr)
+		}
+	}
+
+	if config != nil {
+		settings, settingsErr := parseAIServiceSettings(config.Settings)
+		if settingsErr != nil {
+			s.log.Warnw("Failed to parse image config settings", "error", settingsErr, "config_id", config.ID)
+		} else if settings.DefaultImageSize != "" {
+			return settings.DefaultImageSize
+		}
+	}
+
+	if s.config != nil && s.config.Style.DefaultImageSize != "" {
+		return s.config.Style.DefaultImageSize
+	}
+
+	return "1024x1024"
 }
 
 func (s *ImageGenerationService) ProcessImageGeneration(imageGenID uint) {
