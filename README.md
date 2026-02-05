@@ -20,6 +20,10 @@
 
 Huobao Drama is an AI-powered short drama production platform that automates the entire workflow from script generation, character design, storyboarding to video composition.
 
+火宝短剧商业版地址：[火宝短剧商业版](https://drama.chatfire.site/shortvideo)
+
+火宝小说生成：[火宝小说生成](https://marketing.chatfire.site/huobao-novel/)
+
 ### 🔌 Model API Support (Fork Focus)
 
 This fork expands model connectivity beyond the official defaults. Configure everything in **Settings → AI Config** (Web UI).

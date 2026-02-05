@@ -20,38 +20,9 @@
 
 Huobao Drama は、脚本生成、キャラクターデザイン、絵コンテ作成から動画合成までの全ワークフローを自動化する AI 駆動のショートドラマ制作プラットフォームです。
 
-### 🔌 モデル API 対応（フォークの重点）
+火宝短剧商业版地址：[火宝短剧商业版](https://drama.chatfire.site/shortvideo)
 
-このフォークでは、公式版より多くのモデル API に接続できるよう拡張しています。設定は **設定 → AI 構成** で一元管理します。
-
-**テキスト（LLM）**
-
-- **OpenAI 互換**: `provider=openai` または `provider=chatfire`（`/chat/completions` 実装のエンドポイント）
-- **Gemini ネイティブ**: `provider=gemini` または `provider=google`
-- **SiliconFlow**: `provider=siliconflow`（OpenAI 互換）
-- **MiniMax**: `provider=minimax`（国内）または `provider=minimax-intl`（海外）
-
-**画像**
-
-- **OpenAI 互換**: `provider=openai` / `dalle` / `chatfire`（`/images/generations`）
-- **Doubao/Volcengine**: `provider=doubao` / `volcengine` / `volces`
-- **Gemini 画像**: `provider=gemini` / `provider=google`
-
-**動画**
-
-- **Doubao/Volcengine**: `provider=doubao` / `volcengine` / `volces`
-- **OpenAI Sora**: `provider=openai`
-- **MiniMax**: `provider=minimax`
-- **Runway**: `provider=runway`
-- **Pika**: `provider=pika`
-- **Chatfire**: `provider=chatfire`
-
-**OpenAI 互換の独自接続**
-
-- `provider=openai`（または `chatfire`）を指定
-- `base_url` に提供元の URL（例: `https://.../v1`）を設定
-- `endpoint` を空にするとデフォルトが自動適用
-- サービス種別ごとに複数設定可能。**priority** で既定を決定
+火宝小说生成：[火宝小说生成](https://marketing.chatfire.site/huobao-novel/)
 
 ### 🎯 主要機能
 
